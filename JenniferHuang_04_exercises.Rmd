@@ -12,7 +12,7 @@ output:
 
 
 ```{r setup, include=FALSE}
-#knitr::opts_chunk$set(echo = TRUE, error=TRUE, message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(echo = TRUE, error=TRUE, message=FALSE, warning=FALSE)
 ```
 
 ```{r libraries}
@@ -40,30 +40,10 @@ starbucks_us_by_state <- Starbucks %>%
   count(`State/Province`) %>% 
   mutate(state_name = str_to_lower(abbr2state(`State/Province`))) 
 
-# Lisa's favorite St. Paul places - example for you to create your own data
-favorite_stp_by_lisa <- tibble(
-  place = c("Home", "Macalester College", "Adams Spanish Immersion", 
-            "Spirit Gymnastics", "Bama & Bapa", "Now Bikes",
-            "Dance Spectrum", "Pizza Luce", "Brunson's"),
-  long = c(-93.1405743, -93.1712321, -93.1451796, 
-           -93.1650563, -93.1542883, -93.1696608, 
-           -93.1393172, -93.1524256, -93.0753863),
-  lat = c(44.950576, 44.9378965, 44.9237914,
-          44.9654609, 44.9295072, 44.9436813, 
-          44.9399922, 44.9468848, 44.9700727)
-  )
-
 #COVID-19 data from the New York Times
 covid19 <- read_csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv")
 
 ```
-
-## Instructions
-
-* **For ALL graphs, you should include appropriate labels.** 
-
-* When you are finished with ALL the exercises, uncomment the options at the top so your document looks nicer. Don't do it before then, or else you might miss some important warnings and messages.
-
 
 ## Warm-up exercises from tutorial
 
@@ -74,19 +54,27 @@ These exercises will reiterate what you learned in the "Mapping data with R" tut
   1. Add the `Starbucks` locations to a world map. Add an aesthetic to the world map that sets the color of the points according to the ownership type. What, if anything, can you deduce from this visualization?  
   
 ```{r}
-# Get the map information
 world <- get_stamenmap(
-    bbox = c(left = -180, bottom = -57, right = 179, top = 82.1), 
+    bbox = c(left = -170, bottom = -57, right = 186, top = 76), 
     maptype = "terrain",
     zoom = 2)
 
-# Plot the points on the map
-ggmap(world) + # creates the map "background"
+ggmap(world) + 
   geom_point(data = Starbucks, 
-             aes(x = Longitude, y = Latitude, color = `Ownership Type`), alpha = .3, size = .1) +
-  theme_map()
+             aes(x = Longitude, y = Latitude, 
+                 color = `Ownership Type`), alpha = 0.5, size = .1) +
+  labs(title = "Starbucks location and ownership type world wide") +
+  scale_color_viridis_d() + 
+  theme_map() + 
+  theme(plot.title = element_text(face = "bold", hjust = 0.5)) + 
+  guides(colour = guide_legend(override.aes = list(size = 2, alpha = 1))) + 
+  theme(legend.background = element_blank(),
+    legend.box.background = element_blank(),
+    legend.key = element_blank())
 ```
 
+
+$~$
 
   2. Construct a new map of Starbucks locations in the Twin Cities metro area (approximately the 5 county metro area).  
 
@@ -95,7 +83,7 @@ starbucks_mn <- Starbucks %>%
   filter(Country == "US", `State/Province` == "MN")
 
 minneapolis <- get_stamenmap(
-    bbox = c(left = -93.47, bottom = 44.79, right = -92.76, top = 45.13), 
+    bbox = c(left = -93.44, bottom = 44.77, right = -92.76, top = 45.10), 
     maptype = "terrain",
     zoom = 11)
 
@@ -103,46 +91,55 @@ ggmap(minneapolis) +
   geom_point(data = starbucks_mn, 
              aes(x = Longitude, y = Latitude),
              alpha = 1, 
-             size = 1,
+             size = 1.5,
              color = "forestgreen") +
-  theme_map()
+  labs(title = "Starbucks location in the Twin Cities, MN, USA") +
+  theme_map() + 
+  theme(plot.title = element_text(face = "bold", hjust = 0.5))
 ```
 
 
-```{r}
-starbucks_us_by_state <- Starbucks %>% 
-  filter(Country == "US") %>% 
-  count(`State/Province`) %>% 
-  mutate(state_name = str_to_lower(abbr2state(`State/Province`))) 
-
-states_map <- map_data("state")
-```
-
+$~$
 
   3. In the Twin Cities plot, play with the zoom number. What does it do?  (just describe what it does - don't actually include more than one map).  
 
 ```{r}
-world <- get_stamenmap(
-    bbox = c(left = -103, bottom = 40, right = -85, top = 52), 
+minne_diff_zoom <- get_stamenmap(
+    bbox = c(left = -93.44, bottom = 44.77, right = -92.76, top = 45.10), 
     maptype = "terrain",
-    zoom = 5)
+    zoom = 9)
 
-ggmap(world)
+ggmap(minne_diff_zoom)  +
+  labs(title = "Map of Twin Cities, MN, USA") +
+  theme_map() + 
+  theme(plot.title = element_text(face = "bold", hjust = 0.5))
 ```
 
 * The zoom number is the level of details that you want your map to show. Smaller numbers show less detail and larger numbers show more. 
+
 
 $~$
 
   4. Try a couple different map types (see `get_stamenmap()` in help and look at `maptype`). Include a map with one of the other map types.  
 
 ```{r}
-world <- get_stamenmap(
-    bbox = c(left = -103, bottom = 40, right = -85, top = 52), 
-    maptype = "watercolor",
-    zoom = 5)
+starbucks_mn <- Starbucks %>% 
+  filter(Country == "US", `State/Province` == "MN")
 
-ggmap(world)
+watercolor_mn <- get_stamenmap(
+    bbox = c(left = -93.44, bottom = 44.77, right = -92.76, top = 45.10), 
+    maptype = "watercolor",
+    zoom = 11)
+
+ggmap(watercolor_mn) + 
+  geom_point(data = starbucks_mn, 
+             aes(x = Longitude, y = Latitude),
+             alpha = 1, 
+             size = 1.5,
+             color = "black") +
+  labs(title = "Starbucks location in the Twin Cities, MN, USA") +
+  theme_map() + 
+  theme(plot.title = element_text(face = "bold", hjust = 0.5))
 ```
 
 $~$
@@ -151,15 +148,29 @@ $~$
   5. Add a point to the map that indicates Macalester College and label it appropriately. There are many ways you can do this, but I think it's easiest with the `annotate()` function (see `ggplot2` cheatsheet).
 
 ```{r}
-world <- get_stamenmap(
-    bbox = c(left = -103, bottom = 40, right = -85, top = 52), 
-    maptype = "toner",
-    zoom = 5)
+mac_and_starbucks <- get_stamenmap(
+    bbox = c(left = -93.7206, bottom = 44.6813, 
+             right = -92.7202, top = 45.2837), 
+    maptype = "terrain",
+    zoom = 10)
 
-ggmap(world) +
-  geom_point(aes(x = -93, y = 44.7), color = "red") + 
-  geom_text(aes(x = -93, y = 44.4, label = "Macalester College"))
+ggmap(mac_and_starbucks) + 
+  geom_point(data = starbucks_mn, 
+             aes(x = Longitude, y = Latitude),
+             alpha = 1, 
+             size = 1,
+             color = "forestgreen") +
+  annotate("point", x = -93.17123, y = 44.93790, color = "red") +
+  annotate("text", x = -93.17123, y = 44.93, 
+           color = "red", label = "Macalester College") + 
+  labs(title = "Starbucks locations in Twin Cities, MN",
+       subtitle = "In relation to Macalester College") +
+  theme_map() + 
+  theme(plot.title = element_text(face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(face = "bold", hjust = 0.5))
 ```
+
+
 
 $~$
 
@@ -182,13 +193,13 @@ starbucks_with_2018_pop_est <-
 ```
 
   6. **`dplyr` review**: Look through the code above and describe what each line of code does.
-  * 183 reads the data census population estimate in 2018
-  * 184 separates the dot in front of state names and creates a separate column for the dot and the state names 
-  * 185 recreates the table but takes out the dot column
-  * 186 transforms all state names into lower case
-  * 188 reads the starbucks_us_by_state data and stores it in starbucks_with_2918_pop_est
-  * 190 joins census_pop_est_2018 data with starbucks_us_by_state by state_name and state
-  * 192 creates new variable, starbucks_per_10000, by calculating how many starbucks there are per 10000 people: multiplying number of starbucks divided by estimated population in 2018 with 10000 
+  * `census_pop_est_2018` reads the data census population estimate in 2018
+  * `separate()` separates the dot in front of state names and creates a separate column for the dot and the state names 
+  * `select()` recreates the table but takes out the dot column
+  * `mutate()` transforms all state names into lower case
+  * `starbucks_with_2018_pop_est` is the new variable created by joining `starbucks_us_by_state` and `census_pop_est_2018`
+  * `left_join()` joins `census_pop_est_2018` data with `starbucks_us_by_state` by the variables `state` and `state_name`, respectively. 
+  * `mutate()` creates new variable, `starbucks_per_10000`, by calculating how many Starbucks there are per 10000 people
   
 $~$
 
@@ -217,17 +228,22 @@ starbucks_with_2018_pop_est %>%
        caption = "Jennifer Huang",
        fill = "Starbucks per 10,000") + 
   theme_map() + 
-  theme(legend.background = element_blank())
+  theme(legend.background = element_blank(),
+        legend.position = "left",
+        plot.title = element_text(face = "bold", hjust = 0.5))
 ```
 
+* Starbucks mainly exist in the West and East coasts. It's apparently really not a big thing in the Mid-West and somewhat in the South. But interestingly, in Colorado where it seems to be Denver, there's a cluster of Starbucks locations. The coffe franchise goes where big ciites are, New York City, Denver, San Francisco, LA, Boston, Philadelphia, etc. 
 
 
 $~$
+
+
 ### A few of your favorite things (`leaflet`)
 
   8. In this exercise, you are going to create a single map of some of your favorite places! The end result will be one map that satisfies the criteria below. 
 
-  * Create a data set using the `tibble()` function that has 10-15 rows of your favorite places. The columns will be the name of the location, the latitude, the longitude, and a column that indicates if it is in your top 3 favorite locations or not. For an example of how to use `tibble()`, look at the `favorite_stp_by_lisa` I created in the data R code chunk at the beginning.  
+  * Create a data set using the `tibble()` function that has 10-15 rows of your favorite places. The columns will be the name of the location, the latitude, the longitude, and a column that indicates if it is in your top 3 favorite locations or not.
 
 ```{r}
 fav_taiwan_jen <- tibble(
@@ -247,11 +263,9 @@ fav_taiwan_jen <- tibble(
   )
 ```
 
-  * Create a `leaflet` map that uses circles to indicate your favorite places. Label them with the name of the place. Choose the base map you like best. Color your 3 favorite places differently than the ones that are not in your top 3 (HINT: `colorFactor()`). Add a legend that explains what the colors mean.  
+  * Create a `leaflet` map that uses circles to indicate your favorite places. Label them with the name of the place. Choose the base map you like best. Color your 3 favorite places differently than the ones that are not in your top 3 (HINT: `colorFactor()`). Add a legend that explains what the colors mean.
     
   * Connect all your locations together with a line in a meaningful way (you may need to order them differently in the original data).  
-  
-  * If there are other variables you want to add that could enhance your plot, do that now.  
   
 ```{r}
 pal_col <- colorFactor("viridis", domain = fav_taiwan_jen$TopThree)
@@ -269,7 +283,50 @@ leaflet(data = fav_taiwan_jen) %>%
   addLegend(position = c("topright"),
             pal = pal_col,
             values = ~TopThree,
-            opacity = 1) 
+            opacity = 1) %>% 
+  addMarkers(
+    lng = 121.7767, lat = 25.0427,
+    label = "ShiFen Old Street",
+    labelOptions = labelOptions(noHide = T)) %>% 
+  addMarkers(
+    lng = 121.8275, lat = 25.0870,
+    label = "HouTong Cat Village",
+    labelOptions = labelOptions(noHide = T)) %>% 
+  addMarkers(
+    lng = 121.8463, lat = 25.1092,
+    label = "JiouFen Mountain Town",
+    labelOptions = labelOptions(noHide = T,
+      style = list("color" = "goldenrod", "font-style" = "italic"))) %>% 
+  addMarkers(
+    lng = 121.5341, lat = 25.1157,
+    label = "TianMu District",
+    labelOptions = labelOptions(noHide = T,
+      style = list("color" = "goldenrod", "font-style" = "italic"))) %>% 
+  addMarkers(
+    lng = 121.5150, lat = 25.1152,
+    label = "TamSui District",
+    labelOptions = labelOptions(noHide = T, direction = "bottom")) %>% 
+  addMarkers(
+    lng = 121.4434, lat = 25.1720,
+    label = "Home",
+    labelOptions = labelOptions(noHide = T)) %>% 
+  addMarkers(
+    lng = 121.4999, lat = 25.0372,
+    label = "LungShan Temple",
+    labelOptions = labelOptions(noHide = T, direction = "left")) %>% 
+  addMarkers(
+    lng = 121.5293, lat = 25.0441,
+    label = "HuaShan Creative Park",
+    labelOptions = labelOptions(noHide = T, direction = "bottom")) %>% 
+  addMarkers(
+    lng = 121.5429, lat = 25.0411,
+    label = "ZhongXiao E.Road",
+    labelOptions = labelOptions(noHide = T, direction = "top",
+      style = list("color" = "goldenrod", "font-style" = "italic"))) %>% 
+  addMarkers(
+    lng = 121.5645, lat = 25.0340,
+    label = "Taipei 101",
+    labelOptions = labelOptions(noHide = T, direction = "bottom"))
 ```
   
 
@@ -277,9 +334,6 @@ leaflet(data = fav_taiwan_jen) %>%
 
 $~$
 
-## Revisiting old datasets
-
-This section will revisit some datasets we have used previously and bring in a mapping component. 
 
 ### Bicycle-Use Patterns
 
@@ -321,11 +375,16 @@ ggmap(DC_map) +
              alpha = 1,
              size = 1) + 
   scale_color_viridis_c() +
-  labs(title = "Totale number of departures from each bike station in DC",
+  labs(title = "Total number of departures from each bike station in DC",
        col = "Frequency") +
   theme_map() + 
-  theme(legend.background = element_blank())
+  theme(legend.background = element_blank(),
+        legend.position = "left",
+        plot.title = element_text(face = "bold", hjust = 0.5))
 ```
+  
+  
+  $~$
   
   10. Only 14.4% of the trips in our data are carried out by casual users. Create a plot that shows which area(s) have stations with a much higher percentage of departures by casual users. What patterns do you notice? Also plot this on top of a map. I think it will be more clear what the patterns are.
   
@@ -342,10 +401,18 @@ ggmap(DC_map) +
              size = 1) +
   scale_color_viridis_c() +
   labs(title = "Areas in DC with high percentage of departures by casual bike users",
-       col = "Percentage of client type") + 
+       col = "Percentage of casual bikers") + 
   theme_map() + 
-  theme(legend.background = element_blank())
+  theme(legend.background = element_blank(),
+        legend.position = "left",
+        plot.title = element_text(face = "bold", hjust = 0.5))
 ```
+  
+  * It seems like most casual bikers cluster in center of the city perhaps because that's where most of the sightseeing spots are in DC. 
+  
+  
+  $~$
+  
   
 ### COVID-19 data
 
@@ -366,9 +433,19 @@ covid19 %>%
            aes(map_id = state, fill = most_recent_case)) +
   scale_fill_viridis_c() +
   expand_limits(x = states_map$long, y = states_map$lat) + 
-  theme_map()
+  labs(title = "Most recent cumulative number of COVID cases in US",
+       fill = "Number of cases") +
+  theme_map() +
+  theme(legend.background = element_blank(),
+        legend.position = "left",
+        plot.title = element_text(face = "bold", hjust = 0.5))
 ```
   
+  * This graph is problematic because it only shows the most recent count of COVID cases but neglects population in each state. Including population data in reporting COVID cases is necessary so that people know the proportion of sick people to healthy people. 
+  * This map is misleading because it shows that California has the least case count, which is not true. California continues to have the worst COVID hit, even after a year of battling with COVID. 
+  
+  
+  $~$
   
   12. Now add the population of each state to the dataset and color the states by most recent cumulative cases/10,000 people. See the code for doing this with the Starbucks data. You will need to make some modifications. 
   
@@ -392,11 +469,18 @@ covid_with_2018_pop_est <-
            aes(map_id = state, fill = covid_per_10000)) +
   scale_fill_viridis_c() +
   expand_limits(x = states_map$long, y = states_map$lat) + 
-  theme_map()
+  labs(title = "Most recent cumulative number of COVID cases per 10,000 people in US",
+       fill = "Cases per 10,000 people") +
+  theme_map() +
+  theme(legend.background = element_blank(),
+        legend.position = "left",
+        plot.title = element_text(face = "bold", hjust = 0.5))
 
 covid_with_2018_pop_est
 ```
   
+  
+  $~$
   
   13. **CHALLENGE** Choose 4 dates spread over the time period of the data and create the same map as in exercise 12 for each of the dates. Display the four graphs together using faceting. What do you notice?
 
@@ -431,15 +515,17 @@ MplsStops %>%
   addTiles() %>% 
   addCircles(lng = ~long,
              lat = ~lat,
-             opacity = 0.5,
+             opacity = 0.4,
              radius = 2,
              color = ~pal_police(problem)) %>% #apply color created to problem variable
   addLegend(position = c("topright"),
             pal = pal_police,
             values = ~problem,
-            opacity = 1) 
+            opacity = 2) 
 ```
   
+  
+  $~$
   
   16. Save the folder from moodle called Minneapolis_Neighborhoods into your project/repository folder for this assignment. Make sure the folder is called Minneapolis_Neighborhoods. Use the code below to read in the data and make sure to **delete the `eval=FALSE`**. Although it looks like it only links to the .sph file, you need the entire folder of files to create the `mpls_nbhd` data set. These data contain information about the geometries of the Minneapolis neighborhoods. Using the `mpls_nbhd` dataset as the base file, join the `mpls_suspicious` and `MplsDemo` datasets to it by neighborhood (careful, they are named different things in the different files). Call this new dataset `mpls_all`.
 
@@ -452,23 +538,61 @@ mpls_all <- mpls_nbhd %>%
   left_join(mpls_suspicious, by = c("neighborhood"))
 ```
 
+$~$
+
   17. Use `leaflet` to create a map from the `mpls_all` data  that colors the neighborhoods by `prop_suspicious`. Display the neighborhood name as you scroll over it. Describe what you observe in the map.
   
 ```{r}
-#pal_mpls <- colorFactor("viridis", domain = mpls_all$neighborhood)
+mpls_nbhd <- st_read("Minneapolis_Neighborhoods/Minneapolis_Neighborhoods.shp", quiet = TRUE) %>%
+  rename(neighborhood = "BDNAME")
 
-#leaflet(mpls_all) %>% 
-  #addTiles() %>% 
-  #addPolygons(
-    #fillColor = ~pal(neighborhood),
-    #fillOpacity = 0.7)
+mpls_all <- mpls_nbhd %>% 
+  left_join(MplsDemo, by = c("neighborhood")) %>% 
+  left_join(mpls_suspicious, by = c("neighborhood"))
+
+pal_mpls <- colorNumeric("viridis", domain = mpls_all$prop_sus)
+
+leaflet(mpls_all) %>% 
+  addTiles() %>% 
+  addPolygons(
+    stroke = FALSE,
+    fillColor = ~pal_mpls(prop_sus),
+    fillOpacity = 0.8,
+    smoothFactor = 0.7, 
+    highlight = highlightOptions(weight = 9, 
+                                 color = "black",
+                                 fillOpacity = 10,
+                                 bringToFront = FALSE)) %>%
+  addLegend(pal = pal_mpls, 
+            values = ~prop_sus, 
+            opacity = 0.8, 
+            title = NULL,
+            position = "bottomright")
 ```
-  
+  $~$
   
   18. Use `leaflet` to create a map of your own choosing. Come up with a question you want to try to answer and use the map to help answer that question. Describe what your map shows. 
+  * I am interested in finding out the distribution of licensed and company owned Starbucks in California. Licensed Starbucks usually appear in Target or inside some larger buildings while company owned Starbucks appears to be an individual store. 
+  * This map shows the overall cluster of Starbucks locations: San Francisco and Los Angeles. Within those two big cities in California, it seems like they each have roughly the same amount of licensed and company owned Starbucks.
+  * It is also worth noting that San Diego has the third most Starbucks locations in California, at least according to this map.  
 
 ```{r}
+starbucks_CA <- Starbucks %>% 
+  filter(Country == "US", `State/Province` == "CA")
 
+pal_starbucks <- colorFactor("viridis", domain = starbucks_CA$`Ownership Type`)
+
+leaflet(starbucks_CA) %>% 
+  addTiles() %>% 
+  addCircles(lng = ~Longitude,
+             lat = ~Latitude,
+             opacity = 0.5,
+             radius = 50,
+             color = ~pal_starbucks(`Ownership Type`)) %>% 
+  addLegend(position = c("topright"),
+            pal = pal_starbucks,
+            values = ~`Ownership Type`,
+            opacity = 2) 
 ```
 
   
@@ -477,7 +601,5 @@ $~$
   
 ## GitHub link
 
-  19. Below, provide a link to your GitHub page with this set of Weekly Exercises. Specifically, if the name of the file is 04_exercises.Rmd, provide a link to the 04_exercises.md file, which is the one that will be most readable on GitHub.
+[Link to Jennifer's Weekly Exercise 4 GitHub Page](https://github.com/yhuang2-1008/WeeklyExercise_4)
 
-
-**DID YOU REMEMBER TO UNCOMMENT THE OPTIONS AT THE TOP?**
